@@ -11,10 +11,10 @@ def encode_tokens(tokens):
     id_to_token = {i: token for token, i in token_to_id.items()}
     encoded_tokens = [token_to_id[token] for token in tokens]
 
-    return encoded_tokens, id_to_token
+    return encoded_tokens, id_to_token, token_to_id
 
 # 使用例
 # text = "ここに前処理済みのテキストを入力"
 # tokens = tokenize_text(text)
-# encoded_tokens, id_to_token = encode_tokens(tokens)
+# encoded_tokens, id_to_token, token_to_id = encode_tokens(tokens)
 # print(encoded_tokens)

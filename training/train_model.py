@@ -14,9 +14,8 @@ def prepare_sequences(encoded_tokens, seq_length):
     return np.array(input_sequences), np.array(target_tokens)
 
 def define_model(seq_length, output_dim):
-    # LSTM モデルを定義
     model = Sequential()
-    model.add(LSTM(128, input_shape=(seq_length, 1)))  # 特徴数を1と明示的に指定
+    model.add(LSTM(128, input_shape=(seq_length, 1)))  # ここを修正
     model.add(Dense(output_dim, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam')
     return model
