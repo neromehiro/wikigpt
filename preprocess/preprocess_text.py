@@ -1,4 +1,4 @@
-# file: preprocess_text.py
+# file: /preprocess/preprocess_text.py
 from bs4 import BeautifulSoup
 import re
 
@@ -13,5 +13,14 @@ def preprocess_text(file_path):
 
     # 特殊文字を取り除く
     text = re.sub(r'&lt;|&gt;|&amp;|&quot;', '', text)
+
+    # 「」内の文字列を削除
+    text = re.sub(r'「[^」]*」', '', text)
+
+    # < ~~>内の文字列を削除
+    text = re.sub(r'<[^>]*>', '', text)
+
+    # "}}。" を削除
+    text = text.replace('}}。', '')
 
     return text

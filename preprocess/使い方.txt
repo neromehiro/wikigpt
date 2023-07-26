@@ -1,0 +1,6 @@
+docker起動
+
+1 python /app/preprocess/save_preprocessed_text.py
+2 python  /app/preprocess/run_tokenize_text.py
+3 python  /app/preprocess/run_encode_tokens.py
+3 　
