@@ -8,12 +8,13 @@ def encode_tokens(tokens):
 
     # 各トークンを一意の整数にエンコード
     token_to_id = {token: i for i, token in enumerate(freq_dist.keys())}
+    id_to_token = {i: token for token, i in token_to_id.items()}
     encoded_tokens = [token_to_id[token] for token in tokens]
 
-    return encoded_tokens
+    return encoded_tokens, id_to_token
 
 # 使用例
 # text = "ここに前処理済みのテキストを入力"
 # tokens = tokenize_text(text)
-# encoded_tokens = encode_tokens(tokens)
+# encoded_tokens, id_to_token = encode_tokens(tokens)
 # print(encoded_tokens)
