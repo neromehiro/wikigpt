@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 import MeCab
 import os
+import random
 
 def generate_output_filename(directory):
     # 指定されたディレクトリ内のテキストファイルの数をカウント
@@ -46,13 +47,19 @@ with open('id_to_token.pkl', 'rb') as file:
     id_to_token = pickle.load(file)
 with open('token_to_id.pkl', 'rb') as file:
     token_to_id = pickle.load(file)
-mecab = MeCab.Tagger("-Owakati")
-text = "これはテストです"
-tokens = mecab.parse(text).split()
-unknown_token_id = max(token_to_id.values()) + 1  # 未知のトークンIDを設定
-seed_tokens = [token_to_id.get(token, unknown_token_id) for token in tokens]  
+
+# すべての単語をリストとして取得
+all_words = list(token_to_id.keys())
+
+# ランダムに単語を選択
+seed_word = random.choice(all_words)
+
+# ランダムに選択された単語をシードテキストとして使用
+seed_tokens = [token_to_id[seed_word]]
+
 # トークンが100になるまでパディングを追加
 while len(seed_tokens) < 100:
-    seed_tokens.append(unknown_token_id)
+    seed_tokens.append(0)  # ここでは0をパディングとして使用します
+
 generated_text = generate_text(model, id_to_token, seed_tokens, num_tokens_to_generate=1000, output_directory=output_directory)
-print(generated_text)
+# print(generated_text)
