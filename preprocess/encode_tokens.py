@@ -1,12 +1,14 @@
 # file: encode_tokens.py
+from nltk import FreqDist
 from tokenize_text import tokenize_text
 
 def encode_tokens(tokens):
-    # 一意のトークンを取得
-    unique_tokens = list(set(tokens))
+    # トークンの頻度分布を計算
+    freq_dist = FreqDist(tokens)
 
-    # トークンをその一意なインデックスに基づいて数値にエンコード
-    encoded_tokens = [unique_tokens.index(token) for token in tokens]
+    # 各トークンを一意の整数にエンコード
+    token_to_id = {token: i for i, token in enumerate(freq_dist.keys())}
+    encoded_tokens = [token_to_id[token] for token in tokens]
 
     return encoded_tokens
 

@@ -1,6 +1,7 @@
 # file: training/train_model.py
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+from keras.utils import to_categorical
 import numpy as np
 
 def prepare_sequences(encoded_tokens, seq_length):
@@ -37,5 +38,11 @@ model = define_model(seq_length, len(set(encoded_tokens)))
 # 入力シーケンスと目標シーケンスを準備
 input_sequences, target_tokens = prepare_sequences(encoded_tokens, seq_length=seq_length)
 
+# ターゲットトークンをone-hotエンコーディング
+target_tokens = to_categorical(target_tokens)
+
 # モデルを訓練
 train_model(model, input_sequences, target_tokens, epochs=10, batch_size=32)
+
+# モデルを保存
+model.save('my_model.h5')
