@@ -1,5 +1,5 @@
 # file: save_preprocessed_text.py
-from preprocess_text import preprocess_text
+from preprocess.preprocess_text import preprocess_text
 import os
 
 def save_preprocessed_text(input_file_path, output_file_path):

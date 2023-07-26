@@ -1,3 +1,4 @@
+output.txt
 [nltk_data] Downloading package punkt to
 [nltk_data]     /Users/neromehiro/nltk_data...
 [nltk_data]   Package punkt is already up-to-date!
