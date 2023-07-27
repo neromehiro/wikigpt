@@ -1,7 +1,9 @@
 # file: preprocess/run_encode_tokens.py
+# python /app/preprocess/run_encode_tokens.py
 from encode_tokens import encode_tokens
 import pickle
 import os
+from config import BASE_DIR, TOKENIZE_DIR, ENCODE_DIR
 
 def run_encode_tokens(input_file_path, output_file_path):
     # ファイルからトークンを読み込む
@@ -29,15 +31,17 @@ def run_encode_tokens(input_file_path, output_file_path):
         
     print(f"Completed: {output_file_path}")
 
-# # 使用例
-# run_encode_tokens("tokenize_extracted/AA/wiki_00", "encoded_extracted/AA/wiki_00")
+# トークン化済みのファイルを取得
+input_base_dir = TOKENIZE_DIR
+output_base_dir = ENCODE_DIR
 
-folders = [chr(i) for i in range(ord('A'), ord('Q')+1)]  # AA to AQ
-for folder1 in folders:
-    for folder2 in folders:
-        folder = folder1 + folder2  # AA to AQ
-        num_files = 100 if folder != 'AQ' else 49  # AQ folder has 49 files
-        for i in range(num_files):
-            input_file = f"tokenize_extracted/{folder}/wiki_{str(i).zfill(2)}"
-            output_file = f"encoded_extracted/{folder}/wiki_{str(i).zfill(2)}"
-            run_encode_tokens(input_file, output_file)
+# 全てのファイルに対してエンコードを行う
+for root, dirs, files in os.walk(input_base_dir):
+    for file_name in files:
+        input_file_path = os.path.join(root, file_name)
+        relative_path = os.path.relpath(input_file_path, input_base_dir)
+        output_file_path = os.path.join(output_base_dir, relative_path)
+
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+
+        run_encode_tokens(input_file_path, output_file_path)

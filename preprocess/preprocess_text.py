@@ -23,4 +23,7 @@ def preprocess_text(file_path):
     # "}}。" を削除
     text = text.replace('}}。', '')
 
+    # "詳細はを参照" を削除
+    text = text.replace('詳細はを参照', '')
+
     return text
