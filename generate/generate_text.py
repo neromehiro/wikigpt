@@ -1,4 +1,5 @@
 # file: generate/generate_text.py
+# python /app/generate/generate_text.py
 from keras.models import load_model
 import numpy as np
 import pickle
@@ -15,26 +16,32 @@ def generate_output_filename(directory):
 
     return output_filename
 
-def generate_text(model, id_to_token, seed_tokens, num_tokens_to_generate, output_directory):
-    # 生成するトークンのリストを初期化
+def generate_text(model, id_to_token, seed_tokens, num_tokens_to_generate, output_directory, temperature=1.0, p=0.9):
     generated_tokens = list(seed_tokens)
-
-    # 指定された数のトークンを生成
     for _ in range(num_tokens_to_generate):
-        # 直近のトークンを入力シーケンスとして使用
         input_sequence = np.array(generated_tokens[-100:]).reshape(1, 100, 1)
-        # 次のトークンを予測
-        predicted_token_id = np.argmax(model.predict(input_sequence, verbose=0), axis=-1)
-        # 予測されたトークンをリストに追加
-        generated_tokens.append(predicted_token_id[0])
+        predictions = model.predict(input_sequence, verbose=0)[0]
+        predictions = np.exp(np.log(predictions) / temperature)
+        predictions = predictions / np.sum(predictions)
+        sorted_indices = np.argsort(predictions)[::-1]
+        sorted_predictions = predictions[sorted_indices]
+        cumulative_probs = np.cumsum(sorted_predictions)
 
-    # トークンIDを実際のトークンに変換
+        idx = np.searchsorted(cumulative_probs, p)
+        candidate_indices = sorted_indices[:idx+1]
+        # トレーニングデータに存在するトークンのみを候補とする
+        candidate_indices = [idx for idx in candidate_indices if idx in id_to_token]
+        # 候補が空になった場合（すべての候補がトレーニングデータに存在しないトークンだった場合）は、トレーニングデータに存在する最も確率の高いトークンを選ぶ
+        if len(candidate_indices) == 0:
+            candidate_indices = [idx for idx in sorted_indices if idx in id_to_token]
+
+        next_token = np.random.choice(candidate_indices)
+        generated_tokens.append(next_token)
+
     generated_text = ' '.join(id_to_token.get(token_id, '<unknown>') for token_id in generated_tokens)
-    
-    # ファイル名を生成
+
     output_filename = generate_output_filename(output_directory)
     
-    # テキストをファイルに書き込み
     with open(output_filename, 'w') as file:
         file.write(generated_text)
 
