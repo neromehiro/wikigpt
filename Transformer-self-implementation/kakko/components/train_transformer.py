@@ -1,5 +1,4 @@
 # ファイル名：/app/Transformer-self-implementation/kakko/components/train_transformer.py
-# ファイル名：/app/Transformer-self-implementation/kakko/components/train_transformer.py
 
 from tensorflow.keras import layers, models
 import numpy as np
@@ -8,7 +7,7 @@ import time
 import glob
 import json
 import tensorflow as tf
-from tensorflow.keras.callbacks import Callback
+from tensorflow.keras.callbacks import Callback, ModelCheckpoint
 
 # 元のトークンとIDの対応付け
 tokens = ["(", ")", "[", "]", "{", "}"]
@@ -54,7 +53,7 @@ def prepare_sequences(encoded_tokens, seq_length):
 def define_model(seq_length, output_dim, learning_rate):
     inputs = layers.Input(shape=(seq_length,))
     x = layers.Embedding(input_dim=output_dim, output_dim=64, mask_zero=True)(inputs)
-    x = layers.GRU(64)(x)
+    x = layers.GRU(64)(x)  # ここをTransformerに変更する必要があります
     outputs = layers.Dense(output_dim, activation="softmax")(x)
 
     model = models.Model(inputs, outputs)
@@ -86,10 +85,12 @@ def train_model(model, input_sequences, target_tokens, epochs, batch_size, model
         dataset = dataset.shuffle(buffer_size=1024).batch(batch_size)
         # Initialize the TimeHistory callback
         time_callback = TimeHistory()
+        # Create the ModelCheckpoint callback
+        checkpoint_callback = ModelCheckpoint(model_path, save_best_only=False)
         # Record the start time
         start_time = time.time()
         # Split the data into batches and train the model
-        model.fit(dataset, epochs=epochs, callbacks=[time_callback])
+        model.fit(dataset, epochs=epochs, callbacks=[time_callback, checkpoint_callback])
         # Record the end time
         end_time = time.time()
         # Calculate the elapsed time
@@ -98,45 +99,46 @@ def train_model(model, input_sequences, target_tokens, epochs, batch_size, model
         # Calculate and print the average time per epoch
         average_epoch_time = sum(time_callback.times) / len(time_callback.times)
         print(f"Average time per epoch: {average_epoch_time} seconds.")
-        # Save the model
-        save_model(model, model_path)
     else:
         print(f"No data for training in: {model_path}")
 
+
+
 def main():
     epochs, batch_size, num_files, learning_rate = select_mode()
-    seq_length = 100
+    seq_length = 1
 
-    num_trained_files = 0
-    vocab_size = 0
+    # 全てのトークンをvocab_setに追加
+    vocab_set = set(tokens)
+
+    all_input_sequences = []
+    all_target_tokens = []
 
     # For all files in the directory
     for dirpath, dirnames, filenames in os.walk(encode_dir_path):
         for file in filenames:
             file_path = os.path.join(dirpath, file)
-            encoded_tokens = load_dataset(file_path)
-            # Update the vocabulary size from all files, not just the ones we train on
-            vocab_size = max(vocab_size, max(encoded_tokens))
+            encoded_tokens_list = load_dataset(file_path)
+            for encoded_tokens in encoded_tokens_list:
+                # Prepare sequences for each file
+                if len(encoded_tokens) > seq_length:
+                    input_sequences, target_tokens = prepare_sequences(encoded_tokens, seq_length=seq_length)
+                    all_input_sequences.extend(input_sequences)
+                    all_target_tokens.extend(target_tokens)
+                else:
+                    print(f"Not enough data in: {file_path}")
 
+    vocab_size = len(vocab_set)
     model = define_model(seq_length, vocab_size + 1, learning_rate)  # Define the model once
 
-    # Train on each file
-    for dirpath, dirnames, filenames in os.walk(encode_dir_path):
-        for file in filenames:
-            if num_trained_files >= num_files:
-                break
-            file_path = os.path.join(dirpath, file)
-            encoded_tokens = load_dataset(file_path)
-            if len(encoded_tokens) > seq_length:
-                input_sequences, target_tokens = prepare_sequences(encoded_tokens, seq_length=seq_length)
-                if len(input_sequences) > 0 and len(target_tokens) > 0:
-                    model_path = f"{model_save_path}mymodel{num_trained_files}.h5" 
-                    train_model(model, input_sequences, target_tokens, epochs=epochs, batch_size=batch_size, model_path=model_path) 
-                    num_trained_files += 1
-                else:
-                    print(f"Input sequences or target tokens not properly prepared for: {file_path}")
-            else:
-                print(f"Not enough data in: {file_path}")
+    # Convert lists to numpy arrays
+    all_input_sequences = np.array(all_input_sequences)
+    all_target_tokens = np.array(all_target_tokens)
+
+    # Train the model
+    for epoch in range(epochs):
+        model_path = f"{model_save_path}mymodel{epoch}.h5" 
+        train_model(model, all_input_sequences, all_target_tokens, epochs=1, batch_size=batch_size, model_path=model_path)
 
     print("Training finished.")
 
