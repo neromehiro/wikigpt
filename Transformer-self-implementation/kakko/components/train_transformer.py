@@ -10,7 +10,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import Callback, ModelCheckpoint
 
 # 元のトークンとIDの対応付け
-tokens = ["(", ")", "[", "]", "{", "}"]
+tokens = ["(", ")", "[", "]", "{", "}", "input", ",output" ,","]
 token2id = {token: i for i, token in enumerate(tokens)}
 
 # データセットの保存先ディレクトリ
