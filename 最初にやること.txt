@@ -1,8 +1,0 @@
-
-dockerアプリ起動
-docker ps -a
-docker start tensorflow_container
-docker attach tensorflow_container
-
-cd /mycode/
-
