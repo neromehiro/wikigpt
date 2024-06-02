@@ -11,7 +11,7 @@ import tensorflow as tf
 
 
 # 元のトークンとIDの対応付け
-tokens = ["(", ")", "[", "]", "{", "}"]
+tokens = ["(", ")", "【", "】", "{", "}", "input", ",output", ","]
 token2id = {token: i for i, token in enumerate(tokens)}
 id2token = {i: token for i, token in enumerate(tokens)}
 
